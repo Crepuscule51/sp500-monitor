@@ -344,16 +344,15 @@ async function main() {
   }
 
   $("main").style.display = "grid";
-  renderHeader(data);
-  renderOverview(data);
-  renderNdx(data);
-  renderFng(data);
-  renderVix(data);
-  renderVxn(data);
-  renderPe(data);
-  renderSignal(data);
-  renderAdvice(data);
-  renderFooter(data);
+  // 每个区块独立渲染：单点失败只影响该卡片，不影响其他（容错）
+  const renderers = [renderHeader, renderOverview, renderNdx, renderFng, renderVix, renderVxn, renderPe, renderSignal, renderAdvice, renderFooter];
+  for (const fn of renderers) {
+    try {
+      fn(data);
+    } catch (e) {
+      console.error("渲染失败:", fn.name, e);
+    }
+  }
 
   window.addEventListener("resize", () => charts.forEach((c) => c.resize()));
 }
