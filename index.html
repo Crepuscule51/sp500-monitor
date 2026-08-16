@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>标普500监测图 · 情绪与择时指标监测</title>
+<meta name="description" content="每日自动更新的标普500监测图：收盘点位、CNN 恐惧与贪婪指数、VIX 恐慌指数、TTM PE 估值与历史分位，附规则化中文解读。" />
+<link rel="stylesheet" href="css/style.css" />
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1><span class="dot"></span>标普500监测图</h1>
+    <div class="sub" id="subline">情绪与择时指标监测 · 加载中…</div>
+  </header>
+
+  <div id="errbox" class="err" style="display:none"></div>
+
+  <main class="grid" id="main" style="display:none">
+
+    <!-- 今日概览 -->
+    <section class="card wide">
+      <h2>今日概览</h2>
+      <div class="ov-head">
+        <span class="ov-close" id="ov-close">--</span>
+        <span class="ov-change" id="ov-change">--</span>
+        <span class="badge" id="ov-trend">--</span>
+      </div>
+      <div class="ov-stats" id="ov-stats"></div>
+      <div class="ov-line" id="ov-line"></div>
+      <div id="chart-spx" class="chart"></div>
+    </section>
+
+    <!-- 恐惧与贪婪 -->
+    <section class="card">
+      <h2>CNN 恐惧与贪婪指数</h2>
+      <div class="fng-wrap">
+        <div id="gauge-fng" class="gauge"></div>
+        <div class="fng-rating" id="fng-rating">--</div>
+        <div class="fng-bands" id="fng-bands"></div>
+        <div class="fng-text" id="fng-text"></div>
+        <div id="chart-fng" class="chart sm" style="margin-top:8px"></div>
+      </div>
+    </section>
+
+    <!-- VIX -->
+    <section class="card">
+      <h2>VIX 恐慌指数</h2>
+      <div class="big-num" id="vix-num">--</div>
+      <div><span class="chip" id="vix-chip">--</span></div>
+      <div class="vix-scale">
+        <i style="background:#22c55e"></i><i style="background:#facc15"></i><i style="background:#ef4444"></i>
+      </div>
+      <div class="vix-legend"><span>&lt;15 低波动</span><span>15–25 中性</span><span>&gt;25 高波动</span></div>
+      <div class="vix-text" id="vix-text"></div>
+      <div id="chart-vix" class="chart sm" style="margin-top:8px"></div>
+    </section>
+
+    <!-- 估值 -->
+    <section class="card">
+      <h2>估值（TTM PE）</h2>
+      <div class="big-num" id="pe-num">--</div>
+      <div class="pe-bar-wrap">
+        <div class="pe-bar"><i id="pe-bar-fill" style="width:0%"></i></div>
+        <div class="pe-labels"><span>0% 低估</span><span class="pe-pct" id="pe-pct">--</span><span>100% 高估</span></div>
+      </div>
+      <div class="pe-text" id="pe-text"></div>
+      <div id="chart-pe" class="chart sm" style="margin-top:8px"></div>
+    </section>
+
+    <!-- 综合市场判断 -->
+    <section class="card full">
+      <h2>综合市场判断</h2>
+      <div class="signal-banner" id="signal">
+        <span id="signal-label">--</span>
+        <span class="score" id="signal-score"></span>
+      </div>
+      <div id="dims"></div>
+      <div class="conclusion" id="conclusion"></div>
+    </section>
+
+    <!-- 投资者操作建议 -->
+    <section class="card full">
+      <h2>投资者操作建议</h2>
+      <ul class="advice" id="advice"></ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="links" id="footer-links"></div>
+    <div class="disc">免责声明：本站为个人学习与信息展示用途，所有数据来自公开渠道，可能存在延迟或误差；内容由规则模板自动生成，不构成任何投资建议。</div>
+  </footer>
+
+</div>
+<script src="js/app.js"></script>
+</body>
+</html>

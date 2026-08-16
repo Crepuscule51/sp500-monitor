@@ -1,0 +1,10 @@
+# 依赖与临时文件
+node_modules/
+package-lock.json
+
+# 种子输入（仅搭建期使用，可删除；data/daily.json 是成品，必须提交）
+scripts/dev/history-input.json
+
+# 系统文件
+.DS_Store
+Thumbs.db
