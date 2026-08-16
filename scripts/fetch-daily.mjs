@@ -39,9 +39,10 @@ const fmtDate = (ts) => new Date(ts * 1000).toISOString().slice(0, 10);
 
 // ---------------------------------------------------------------- 数据源抓取
 
-async function fetchSpx() {
+// 通用指数抓取（Yahoo chart API，1 年日线）
+async function fetchIndex(symbol) {
   const data = await getJSON(
-    "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?range=1y&interval=1d&events=history"
+    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1y&interval=1d&events=history`
   );
   const res = data.chart.result[0];
   const q = res.indicators.quote[0];
@@ -58,7 +59,7 @@ async function fetchSpx() {
       volume: q.volume[i] != null ? Math.round(q.volume[i]) : null,
     });
   }
-  if (bars.length < 2) throw new Error("SPX 数据不足");
+  if (bars.length < 2) throw new Error(`${symbol} 数据不足`);
   const last = bars[bars.length - 1];
   const prev = bars[bars.length - 2];
   return {
@@ -74,6 +75,9 @@ async function fetchSpx() {
     history: bars,
   };
 }
+
+const fetchSpx = () => fetchIndex("^GSPC");
+const fetchNdx = () => fetchIndex("^NDX");
 
 async function fetchFng() {
   const data = await getJSON("https://production.dataviz.cnn.io/index/fearandgreed/graphdata");
@@ -198,6 +202,7 @@ async function main() {
 
   const urls = {
     spx: "https://finance.yahoo.com/quote/%5EGSPC",
+    ndx: "https://finance.yahoo.com/quote/%5ENDX",
     fng: "https://www.cnn.com/markets/fear-and-greed",
     vix: "https://finance.yahoo.com/quote/%5EVIX",
     pe: "https://www.multpl.com/s-p-500-pe-ratio",
@@ -205,8 +210,9 @@ async function main() {
     cape: "https://www.multpl.com/shiller-pe",
   };
 
-  const [spxR, fngR, vixR, peR, spyPeR, capeR] = await Promise.all([
+  const [spxR, ndxR, fngR, vixR, peR, spyPeR, capeR] = await Promise.all([
     attempt(fetchSpx, "S&P 500 (Yahoo ^GSPC)", urls.spx),
+    attempt(fetchNdx, "NASDAQ 100 (Yahoo ^NDX)", urls.ndx),
     attempt(fetchFng, "CNN Fear & Greed (dataviz)", urls.fng),
     attempt(fetchVix, "VIX (Yahoo ^VIX / CBOE CSV)", urls.vix),
     attempt(fetchPe, "S&P 500 TTM PE (multpl)", urls.pe),
@@ -215,6 +221,7 @@ async function main() {
   ]);
 
   const spx = spxR.ok ? spxR.value : prev.spx;
+  const ndx = ndxR.ok ? ndxR.value : prev.ndx;
   const fng = fngR.ok ? fngR.value : prev.fng;
   const vix = vixR.ok ? vixR.value : prev.vix;
   // PE 字段级合并：新值取新的，缺失字段（如分位解析失败）沿用上一日
@@ -231,7 +238,7 @@ async function main() {
   const spyPe = spyPeR.ok ? spyPeR.value : prev.pe?.spyPe ?? null;
   const cape = capeR.ok ? capeR.value : prev.pe?.cape ?? null;
 
-  const asOf = spx?.asOf || prev.asOf || new Date().toISOString().slice(0, 10);
+  const asOf = spx?.asOf || ndx?.asOf || prev.asOf || new Date().toISOString().slice(0, 10);
   const hist = prev.history || {};
 
   const daily = {
@@ -243,6 +250,12 @@ async function main() {
           prevClose: spx.prevClose, change: spx.change, changePct: spx.changePct, volume: spx.volume,
         }
       : prev.spx,
+    ndx: ndx
+      ? {
+          open: ndx.open, high: ndx.high, low: ndx.low, close: ndx.close,
+          prevClose: ndx.prevClose, change: ndx.change, changePct: ndx.changePct, volume: ndx.volume,
+        }
+      : prev.ndx,
     fng: fng ? { value: fng.value, rating: fng.rating ?? null } : prev.fng,
     vix: vix ? { value: vix.value } : prev.vix,
     pe: pe
@@ -254,13 +267,14 @@ async function main() {
       : prev.pe,
     history: {
       spx: mergeHistory(hist.spx, spx?.history, 300),
+      ndx: mergeHistory(hist.ndx, ndx?.history, 300),
       vix: mergeHistory(hist.vix, vix?.history, 300),
       fng: mergeHistory(hist.fng, fng?.history, 365),
       pe: mergeHistory(hist.pe, pe?.ttmPe != null ? [{ date: asOf, value: pe.ttmPe, percentile: pe.percentile }] : null, 730),
     },
-    summary: buildSummary({ spx, fng, vix, pe }),
-    sources: [spxR.entry, fngR.entry, vixR.entry, peR.entry, spyPeR.entry, capeR.entry],
-    stale: { spx: !spxR.ok, fng: !fngR.ok, vix: !vixR.ok, pe: !peR.ok },
+    summary: buildSummary({ spx, ndx, fng, vix, pe }),
+    sources: [spxR.entry, ndxR.entry, fngR.entry, vixR.entry, peR.entry, spyPeR.entry, capeR.entry],
+    stale: { spx: !spxR.ok, ndx: !ndxR.ok, fng: !fngR.ok, vix: !vixR.ok, pe: !peR.ok },
   };
 
   await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
@@ -270,6 +284,7 @@ async function main() {
   console.log("== 标普500监测图 · 每日快照 ==");
   console.log(`asOf        : ${daily.asOf}`);
   console.log(`S&P 500     : ${daily.spx?.close} (${daily.spx?.changePct}%)  量 ${daily.spx?.volume}`);
+  console.log(`NASDAQ 100  : ${daily.ndx?.close} (${daily.ndx?.changePct}%)  量 ${daily.ndx?.volume}`);
   console.log(`F&G         : ${daily.fng?.value}  ${daily.fng?.rating ?? ""}`);
   console.log(`VIX         : ${daily.vix?.value}`);
   console.log(`TTM PE      : ${daily.pe?.ttmPe}  (近10年分位 ${daily.pe?.percentile}%)  对照: SPY ${daily.pe?.spyPe} / 席勒 ${daily.pe?.cape}`);
@@ -279,7 +294,7 @@ async function main() {
   console.log("sources:");
   for (const e of daily.sources) console.log(`  [${e.status}] ${e.label}`);
 
-  const allFailed = !spxR.ok && !fngR.ok && !vixR.ok && !peR.ok && !prev.asOf;
+  const allFailed = !spxR.ok && !ndxR.ok && !fngR.ok && !vixR.ok && !peR.ok && !prev.asOf;
   process.exit(allFailed ? 1 : 0);
 }
 

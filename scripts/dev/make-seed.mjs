@@ -31,6 +31,22 @@ const spx = {
   history: input.sp500.map((r) => ({ date: r.date, close: r.close })),
 };
 const vix = { value: 14.25, history: [...input.vix.map((r) => ({ date: r.date, value: r.value })), { date: "2026-08-14", value: 14.25 }] };
+// 纳指100：取实况历史最后一根日线作为当日快照（2026-08-14，Yahoo ^NDX 实测数据）
+const ndxBars = input.ndx || [];
+const ndxLast = ndxBars[ndxBars.length - 1];
+const ndxPrev = ndxBars[ndxBars.length - 2];
+const ndx = {
+  asOf: ndxLast.date,
+  open: ndxLast.open,
+  high: ndxLast.high,
+  low: ndxLast.low,
+  close: ndxLast.close,
+  prevClose: ndxPrev.close,
+  change: Math.round((ndxLast.close - ndxPrev.close) * 100) / 100,
+  changePct: Math.round(((ndxLast.close - ndxPrev.close) / ndxPrev.close) * 10000) / 100,
+  volume: ndxLast.volume,
+  history: ndxBars,
+};
 const fng = { value: 65, rating: "Greed", history: [] };
 // 2026-08-16 实测 multpl.com（as-reported TTM PE，近10年月度分位为主口径）：
 // 当前 PE 30.00 → 近10年 91.67% / 近20年 90.83% / 全历史(1871至今, 1868个月) 97.27%
@@ -52,20 +68,25 @@ const daily = {
     open: spx.open, high: spx.high, low: spx.low, close: spx.close,
     prevClose: spx.prevClose, change: spx.change, changePct: spx.changePct, volume: spx.volume,
   },
+  ndx: {
+    open: ndx.open, high: ndx.high, low: ndx.low, close: ndx.close,
+    prevClose: ndx.prevClose, change: ndx.change, changePct: ndx.changePct, volume: ndx.volume,
+  },
   fng: { value: fng.value, rating: fng.rating },
   vix: { value: vix.value },
   pe: { ttmPe: pe.ttmPe, percentile: pe.percentile, percentile20y: pe.percentile20y, percentileAll: pe.percentileAll, percentileWindow: pe.percentileWindow, spyPe: pe.spyPe, cape: pe.cape },
   history: {
     spx: spx.history,
+    ndx: ndx.history,
     vix: vix.history,
     fng: [],
     pe: [],
   },
-  summary: buildSummary({ spx, fng, vix, pe }),
+  summary: buildSummary({ spx, ndx, fng, vix, pe }),
   sources: [
-    { label: "种子快照 2026-08-14（用户样例 + FRED SP500/VIXCLS 真实历史）", status: "seed", url: "" },
+    { label: "种子快照 2026-08-14（用户样例 + FRED SP500/VIXCLS + Yahoo NDX 真实历史）", status: "seed", url: "" },
   ],
-  stale: { spx: false, fng: false, vix: false, pe: false },
+  stale: { spx: false, ndx: false, fng: false, vix: false, pe: false },
 };
 
 await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });

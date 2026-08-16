@@ -55,7 +55,7 @@ const PE_SUMMARY = {
   偏高: "当前标普500TTM PE为{pe}，近10年分位为{pct}%，整体估值偏贵，需防范估值回归风险。",
 };
 
-function marketLine(spx) {
+export function marketLine(spx) {
   if (!spx || spx.changePct == null) return null;
   const pct = spx.changePct;
   let line;
@@ -183,6 +183,7 @@ export function buildSummary(d) {
 
   return {
     marketLine: marketLine(spx),
+    ndxLine: d.ndx ? marketLine(d.ndx) : null,
     signal,
     score: Math.round(score * 10) / 10,
     dimensions,

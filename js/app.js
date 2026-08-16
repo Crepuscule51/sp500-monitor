@@ -115,6 +115,7 @@ function renderHeader(d) {
 function renderOverview(d) {
   const s = d.spx || {};
   const ud = upDown(s.changePct);
+  $("spx-tag").textContent = "1年走势 · Yahoo";
   $("ov-close").textContent = FMT.n(s.close, 2);
   const ch = $("ov-change");
   ch.className = "ov-change " + ud.cls;
@@ -133,6 +134,32 @@ function renderOverview(d) {
   renderHistoryChart("chart-spx", d.history?.spx, {
     name: "S&P 500",
     color: "#60a5fa",
+    markLines: [{ yAxis: s.close, label: { formatter: "收盘" } }],
+  });
+}
+
+function renderNdx(d) {
+  const s = d.ndx || {};
+  const ud = upDown(s.changePct);
+  $("ndx-tag").textContent = "1年走势 · Yahoo";
+  $("ndx-close").textContent = FMT.n(s.close, 2);
+  const ch = $("ndx-change");
+  ch.className = "ov-change " + ud.cls;
+  ch.innerHTML = `${ud.arrow} ${FMT.n(s.change, 2)} (${ud.text})`;
+  $("ndx-trend").textContent = s.changePct > 0 ? "上涨" : s.changePct < 0 ? "下跌" : "平盘";
+
+  const stats = [
+    ["开盘", FMT.n(s.open, 2)],
+    ["最高", FMT.n(s.high, 2)],
+    ["最低", FMT.n(s.low, 2)],
+    ["成交量", FMT.vol(s.volume)],
+  ];
+  $("ndx-stats").innerHTML = stats.map(([k, v]) => `<div class="ov-stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+
+  $("ndx-line").textContent = d.summary?.ndxLine || "";
+  renderHistoryChart("chart-ndx", d.history?.ndx, {
+    name: "NASDAQ 100",
+    color: "#34d399",
     markLines: [{ yAxis: s.close, label: { formatter: "收盘" } }],
   });
 }
@@ -276,6 +303,7 @@ function renderAdvice(d) {
 function renderFooter(d) {
   const links = [
     ["S&P 500 · Yahoo Finance", "https://finance.yahoo.com/quote/%5EGSPC"],
+    ["NASDAQ 100 · Yahoo Finance", "https://finance.yahoo.com/quote/%5ENDX"],
     ["CNN 恐惧与贪婪", "https://www.cnn.com/markets/fear-and-greed"],
     ["VIX · CBOE", "https://www.cboe.com/tradable_products/vix/"],
     ["TTM PE · multpl", "https://www.multpl.com/s-p-500-pe-ratio"],
@@ -306,6 +334,7 @@ async function main() {
   $("main").style.display = "grid";
   renderHeader(data);
   renderOverview(data);
+  renderNdx(data);
   renderFng(data);
   renderVix(data);
   renderPe(data);

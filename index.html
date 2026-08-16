@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>标普500监测图 · 情绪与择时指标监测</title>
-<meta name="description" content="每日自动更新的标普500监测图：收盘点位、CNN 恐惧与贪婪指数、VIX 恐慌指数、TTM PE 估值与历史分位，附规则化中文解读。" />
+<title>美股监测图 · 标普500 & 纳指100</title>
+<meta name="description" content="每日自动更新的美股监测图：标普500 与纳指100 收盘概览、CNN 恐惧与贪婪指数、VIX 恐慌指数、TTM PE 估值与历史分位，附规则化中文解读。" />
 <link rel="stylesheet" href="css/style.css" />
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
 </head>
@@ -12,7 +12,7 @@
 <div class="wrap">
 
   <header>
-    <h1><span class="dot"></span>标普500监测图</h1>
+    <h1><span class="dot"></span>标普500 & 纳指100 监测图</h1>
     <div class="sub" id="subline">情绪与择时指标监测 · 加载中…</div>
   </header>
 
@@ -20,9 +20,9 @@
 
   <main class="grid" id="main" style="display:none">
 
-    <!-- 今日概览 -->
-    <section class="card wide">
-      <h2>今日概览</h2>
+    <!-- 标普500 今日概览 -->
+    <section class="card full">
+      <h2>今日概览 · 标普500 <span class="tag" id="spx-tag"></span></h2>
       <div class="ov-head">
         <span class="ov-close" id="ov-close">--</span>
         <span class="ov-change" id="ov-change">--</span>
@@ -31,6 +31,19 @@
       <div class="ov-stats" id="ov-stats"></div>
       <div class="ov-line" id="ov-line"></div>
       <div id="chart-spx" class="chart"></div>
+    </section>
+
+    <!-- 纳指100 今日概览 -->
+    <section class="card full">
+      <h2>今日概览 · 纳指100 <span class="tag" id="ndx-tag"></span></h2>
+      <div class="ov-head">
+        <span class="ov-close" id="ndx-close">--</span>
+        <span class="ov-change" id="ndx-change">--</span>
+        <span class="badge" id="ndx-trend">--</span>
+      </div>
+      <div class="ov-stats" id="ndx-stats"></div>
+      <div class="ov-line" id="ndx-line"></div>
+      <div id="chart-ndx" class="chart"></div>
     </section>
 
     <!-- 恐惧与贪婪 -->
@@ -47,7 +60,7 @@
 
     <!-- VIX -->
     <section class="card">
-      <h2>VIX 恐慌指数</h2>
+      <h2>VIX 恐慌指数 <span class="tag">标普500口径</span></h2>
       <div class="big-num" id="vix-num">--</div>
       <div><span class="chip" id="vix-chip">--</span></div>
       <div class="vix-scale">
@@ -60,7 +73,7 @@
 
     <!-- 估值 -->
     <section class="card">
-      <h2>估值（TTM PE）</h2>
+      <h2>估值（TTM PE） <span class="tag">标普500口径</span></h2>
       <div class="big-num" id="pe-num">--</div>
       <div class="pe-bar-wrap">
         <div class="pe-bar"><i id="pe-bar-fill" style="width:0%"></i></div>
@@ -74,7 +87,7 @@
 
     <!-- 综合市场判断 -->
     <section class="card full">
-      <h2>综合市场判断</h2>
+      <h2>综合市场判断 <span class="tag">以标普500指标为准</span></h2>
       <div class="signal-banner" id="signal">
         <span id="signal-label">--</span>
         <span class="score" id="signal-score"></span>
