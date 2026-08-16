@@ -223,10 +223,15 @@ function renderPe(d) {
   const pct = p.percentile;
   if (pct != null) {
     $("pe-bar-fill").style.width = Math.max(1, Math.min(100, pct)) + "%";
-    $("pe-pct").textContent = `历史分位 ${FMT.n(pct, 1)}%`;
+    $("pe-pct").textContent = `近10年分位 ${FMT.n(pct, 1)}%`;
   } else {
-    $("pe-pct").textContent = "历史分位 --";
+    $("pe-pct").textContent = "近10年分位 --";
   }
+  const more = [
+    p.percentile20y != null ? `20年分位 ${FMT.n(p.percentile20y, 1)}%` : null,
+    p.percentileAll != null ? `全历史分位 ${FMT.n(p.percentileAll, 1)}%` : null,
+  ].filter(Boolean);
+  $("pe-more").textContent = more.length ? more.join(" · ") : "";
   $("pe-text").textContent = d.summary?.valuationText || "";
   renderHistoryChart("chart-pe", d.history?.pe, {
     name: "TTM PE",

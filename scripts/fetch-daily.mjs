@@ -117,13 +117,15 @@ async function fetchPe() {
   const m = html.match(/Current S&P 500 PE Ratio is ([0-9.]+)/);
   const ttmPe = m ? parseFloat(m[1]) : null;
   if (ttmPe == null || !Number.isFinite(ttmPe)) throw new Error("multpl 当前 PE 解析失败");
+  // 分位口径：近10年月度分位为主（主流工具的"历史分位"口径），另存 20 年与全历史
   let percentile = null;
+  let percentile20y = null;
+  let percentileAll = null;
   try {
-    const table = await getText("https://www.multpl.com/s-p-500-pe-ratio/table/by-year");
-    // 限定 #datatable 表格区域，逐年行取「Jan 1, YYYY」对应的值（剥离 HTML 标签与实体）
+    const table = await getText("https://www.multpl.com/s-p-500-pe-ratio/table/by-month");
     const mTable = table.match(/<table id="datatable">([\s\S]*?)<\/table>/);
     if (mTable) {
-      const yearly = [];
+      const values = [];
       const rowRe = /<tr[^>]*>([\s\S]*?)<\/tr>/g;
       let row;
       while ((row = rowRe.exec(mTable[1])) !== null) {
@@ -133,17 +135,20 @@ async function fetchPe() {
         if (!/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}, \d{4}$/.test(dateTxt)) continue;
         const valTxt = cells[1].replace(/<[^>]+>/g, "").replace(/&#x2002;/g, " ").replace(/†/g, "").trim();
         const val = parseFloat(valTxt);
-        if (Number.isFinite(val)) yearly.push(val);
+        if (Number.isFinite(val)) values.push(val);
       }
-      if (yearly.length) {
-        const below = yearly.filter((v) => v <= ttmPe).length;
-        percentile = round2((below / yearly.length) * 100);
+      values.reverse(); // 升序（1871 → 今）
+      const pct = (vals) => round2((vals.filter((v) => v <= ttmPe).length / vals.length) * 100);
+      if (values.length) {
+        percentileAll = pct(values);
+        percentile20y = pct(values.slice(-240));
+        percentile = pct(values.slice(-120)); // 近10年（120 个月）
       }
     }
   } catch {
-    // 百分位计算失败不致命，保留 null（前端用自身累积历史兜底）
+    // 分位计算失败不致命，保留 null（前端用自身累积历史兜底）
   }
-  return { ttmPe, percentile };
+  return { ttmPe, percentile, percentile20y, percentileAll, percentileWindow: "10y" };
 }
 
 // ---------------------------------------------------------------- 合并与写入
@@ -190,9 +195,15 @@ async function main() {
   const spx = spxR.ok ? spxR.value : prev.spx;
   const fng = fngR.ok ? fngR.value : prev.fng;
   const vix = vixR.ok ? vixR.value : prev.vix;
-  // PE 字段级合并：新值取新的，缺失字段（如百分位解析失败）沿用上一日
+  // PE 字段级合并：新值取新的，缺失字段（如分位解析失败）沿用上一日
   const pe = peR.ok
-    ? { ttmPe: peR.value.ttmPe ?? prev.pe?.ttmPe ?? null, percentile: peR.value.percentile ?? prev.pe?.percentile ?? null }
+    ? {
+        ttmPe: peR.value.ttmPe ?? prev.pe?.ttmPe ?? null,
+        percentile: peR.value.percentile ?? prev.pe?.percentile ?? null,
+        percentile20y: peR.value.percentile20y ?? prev.pe?.percentile20y ?? null,
+        percentileAll: peR.value.percentileAll ?? prev.pe?.percentileAll ?? null,
+        percentileWindow: peR.value.percentileWindow || prev.pe?.percentileWindow || "10y",
+      }
     : prev.pe;
 
   const asOf = spx?.asOf || prev.asOf || new Date().toISOString().slice(0, 10);
@@ -209,7 +220,7 @@ async function main() {
       : prev.spx,
     fng: fng ? { value: fng.value, rating: fng.rating ?? null } : prev.fng,
     vix: vix ? { value: vix.value } : prev.vix,
-    pe: pe ? { ttmPe: pe.ttmPe, percentile: pe.percentile } : prev.pe,
+    pe: pe ? { ttmPe: pe.ttmPe, percentile: pe.percentile, percentile20y: pe.percentile20y, percentileAll: pe.percentileAll, percentileWindow: pe.percentileWindow } : prev.pe,
     history: {
       spx: mergeHistory(hist.spx, spx?.history, 300),
       vix: mergeHistory(hist.vix, vix?.history, 300),

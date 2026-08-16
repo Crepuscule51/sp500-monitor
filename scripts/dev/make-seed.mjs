@@ -32,7 +32,9 @@ const spx = {
 };
 const vix = { value: 14.25, history: [...input.vix.map((r) => ({ date: r.date, value: r.value })), { date: "2026-08-14", value: 14.25 }] };
 const fng = { value: 65, rating: "Greed", history: [] };
-const pe = { ttmPe: 26.01, percentile: 64.08 };
+// 2026-08-16 实测 multpl.com（as-reported TTM PE，近10年月度分位为主口径）：
+// 当前 PE 30.00 → 近10年 91.67% / 近20年 90.83% / 全历史(1871至今, 1868个月) 97.27%
+const pe = { ttmPe: 30.0, percentile: 91.67, percentile20y: 90.83, percentileAll: 97.27, percentileWindow: "10y" };
 
 const daily = {
   updatedAt: new Date().toISOString(),
