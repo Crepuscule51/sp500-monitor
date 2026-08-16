@@ -173,6 +173,42 @@ async function fetchCape() {
   return value;
 }
 
+// VXN（纳指100 波动率指数，即"纳指恐慌指数"）
+async function fetchVxn() {
+  try {
+    const data = await getJSON(
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EVXN?range=1y&interval=1d&events=history"
+    );
+    const res = data.chart.result[0];
+    const q = res.indicators.quote[0];
+    const ts = res.timestamp || [];
+    const hist = [];
+    for (let i = 0; i < ts.length; i++) {
+      if (q.close[i] == null) continue;
+      hist.push({ date: fmtDate(ts[i]), value: round2(q.close[i]) });
+    }
+    if (!hist.length) throw new Error("VXN 数据不足");
+    return { value: hist[hist.length - 1].value, history: hist };
+  } catch (e) {
+    // 回退：CBOE 官方每日 VXN 历史 CSV
+    const csv = await getText("https://cdn.cboe.com/api/global/us_indices/daily_prices/VXN_History.csv");
+    const lines = csv.trim().split(/\r?\n/).filter(Boolean);
+    const last = lines[lines.length - 1].split(","); // Date, Open, High, Low, Close
+    const value = round2(parseFloat(last[4]));
+    if (!Number.isFinite(value)) throw new Error(`CBOE VXN CSV 解析失败: ${lines[lines.length - 1]}`);
+    return { value, history: null, note: "CBOE VXN CSV 回退" };
+  }
+}
+
+// 辅助估值来源（对照用，可选）：stockanalysis.com 的 QQQ PE（TTM）——纳指100 估值
+async function fetchQqqPe() {
+  const html = await getText("https://stockanalysis.com/etf/qqq/");
+  const m = html.match(/PE Ratio<\/td><td[^>]*>\s*([0-9.]+)\s*<\/td>/);
+  const value = m ? parseFloat(m[1]) : null;
+  if (value == null || !Number.isFinite(value)) throw new Error("stockanalysis QQQ PE 解析失败");
+  return value;
+}
+
 // ---------------------------------------------------------------- 合并与写入
 
 function mergeHistory(existing, incoming, cap) {
@@ -205,18 +241,22 @@ async function main() {
     ndx: "https://finance.yahoo.com/quote/%5ENDX",
     fng: "https://www.cnn.com/markets/fear-and-greed",
     vix: "https://finance.yahoo.com/quote/%5EVIX",
+    vxn: "https://finance.yahoo.com/quote/%5EVXN",
     pe: "https://www.multpl.com/s-p-500-pe-ratio",
     spyPe: "https://stockanalysis.com/etf/spy/",
+    qqqPe: "https://stockanalysis.com/etf/qqq/",
     cape: "https://www.multpl.com/shiller-pe",
   };
 
-  const [spxR, ndxR, fngR, vixR, peR, spyPeR, capeR] = await Promise.all([
+  const [spxR, ndxR, fngR, vixR, vxnR, peR, spyPeR, qqqPeR, capeR] = await Promise.all([
     attempt(fetchSpx, "S&P 500 (Yahoo ^GSPC)", urls.spx),
     attempt(fetchNdx, "NASDAQ 100 (Yahoo ^NDX)", urls.ndx),
     attempt(fetchFng, "CNN Fear & Greed (dataviz)", urls.fng),
     attempt(fetchVix, "VIX (Yahoo ^VIX / CBOE CSV)", urls.vix),
+    attempt(fetchVxn, "VXN (Yahoo ^VXN / CBOE CSV)", urls.vxn),
     attempt(fetchPe, "S&P 500 TTM PE (multpl)", urls.pe),
     attempt(fetchSpyPe, "SPY PE 对照 (stockanalysis)", urls.spyPe),
+    attempt(fetchQqqPe, "QQQ PE 对照 (stockanalysis)", urls.qqqPe),
     attempt(fetchCape, "席勒 PE 对照 (multpl)", urls.cape),
   ]);
 
@@ -224,6 +264,7 @@ async function main() {
   const ndx = ndxR.ok ? ndxR.value : prev.ndx;
   const fng = fngR.ok ? fngR.value : prev.fng;
   const vix = vixR.ok ? vixR.value : prev.vix;
+  const vxn = vxnR.ok ? vxnR.value : prev.vxn;
   // PE 字段级合并：新值取新的，缺失字段（如分位解析失败）沿用上一日
   const pe = peR.ok
     ? {
@@ -236,6 +277,7 @@ async function main() {
     : prev.pe;
   // 辅助对照来源（可选，失败仅隐藏对照行）
   const spyPe = spyPeR.ok ? spyPeR.value : prev.pe?.spyPe ?? null;
+  const qqqPe = qqqPeR.ok ? qqqPeR.value : prev.pe?.qqqPe ?? null;
   const cape = capeR.ok ? capeR.value : prev.pe?.cape ?? null;
 
   const asOf = spx?.asOf || ndx?.asOf || prev.asOf || new Date().toISOString().slice(0, 10);
@@ -258,23 +300,25 @@ async function main() {
       : prev.ndx,
     fng: fng ? { value: fng.value, rating: fng.rating ?? null } : prev.fng,
     vix: vix ? { value: vix.value } : prev.vix,
+    vxn: vxn ? { value: vxn.value } : prev.vxn,
     pe: pe
       ? {
           ttmPe: pe.ttmPe, percentile: pe.percentile, percentile20y: pe.percentile20y,
           percentileAll: pe.percentileAll, percentileWindow: pe.percentileWindow,
-          spyPe, cape,
+          spyPe, qqqPe, cape,
         }
       : prev.pe,
     history: {
       spx: mergeHistory(hist.spx, spx?.history, 300),
       ndx: mergeHistory(hist.ndx, ndx?.history, 300),
       vix: mergeHistory(hist.vix, vix?.history, 300),
+      vxn: mergeHistory(hist.vxn, vxn?.history, 300),
       fng: mergeHistory(hist.fng, fng?.history, 365),
       pe: mergeHistory(hist.pe, pe?.ttmPe != null ? [{ date: asOf, value: pe.ttmPe, percentile: pe.percentile }] : null, 730),
     },
-    summary: buildSummary({ spx, ndx, fng, vix, pe }),
-    sources: [spxR.entry, ndxR.entry, fngR.entry, vixR.entry, peR.entry, spyPeR.entry, capeR.entry],
-    stale: { spx: !spxR.ok, ndx: !ndxR.ok, fng: !fngR.ok, vix: !vixR.ok, pe: !peR.ok },
+    summary: buildSummary({ spx, ndx, fng, vix, vxn, pe }),
+    sources: [spxR.entry, ndxR.entry, fngR.entry, vixR.entry, vxnR.entry, peR.entry, spyPeR.entry, qqqPeR.entry, capeR.entry],
+    stale: { spx: !spxR.ok, ndx: !ndxR.ok, fng: !fngR.ok, vix: !vixR.ok, vxn: !vxnR.ok, pe: !peR.ok },
   };
 
   await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
@@ -286,15 +330,15 @@ async function main() {
   console.log(`S&P 500     : ${daily.spx?.close} (${daily.spx?.changePct}%)  量 ${daily.spx?.volume}`);
   console.log(`NASDAQ 100  : ${daily.ndx?.close} (${daily.ndx?.changePct}%)  量 ${daily.ndx?.volume}`);
   console.log(`F&G         : ${daily.fng?.value}  ${daily.fng?.rating ?? ""}`);
-  console.log(`VIX         : ${daily.vix?.value}`);
-  console.log(`TTM PE      : ${daily.pe?.ttmPe}  (近10年分位 ${daily.pe?.percentile}%)  对照: SPY ${daily.pe?.spyPe} / 席勒 ${daily.pe?.cape}`);
+  console.log(`VIX         : ${daily.vix?.value}   VXN: ${daily.vxn?.value}`);
+  console.log(`TTM PE      : ${daily.pe?.ttmPe}  (近10年分位 ${daily.pe?.percentile}%)  对照: SPY ${daily.pe?.spyPe} / QQQ ${daily.pe?.qqqPe} / 席勒 ${daily.pe?.cape}`);
   console.log(`信号         : ${s.signal?.label}  (score ${s.score})`);
   console.log(`行情描述     : ${s.marketLine}`);
   console.log(`结论         : ${s.conclusion}`);
   console.log("sources:");
   for (const e of daily.sources) console.log(`  [${e.status}] ${e.label}`);
 
-  const allFailed = !spxR.ok && !ndxR.ok && !fngR.ok && !vixR.ok && !peR.ok && !prev.asOf;
+  const allFailed = !spxR.ok && !ndxR.ok && !fngR.ok && !vixR.ok && !vxnR.ok && !peR.ok && !prev.asOf;
   process.exit(allFailed ? 1 : 0);
 }
 

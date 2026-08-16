@@ -244,6 +244,17 @@ function renderVix(d) {
   renderHistoryChart("chart-vix", d.history?.vix, { name: "VIX", color: "#c084fc" });
 }
 
+function renderVxn(d) {
+  const v = d.vxn?.value;
+  const band = v == null ? null : v < 22 ? { label: "低波动", cls: "low" } : v <= 35 ? { label: "中性波动", cls: "mid" } : { label: "高波动", cls: "high" };
+  $("vxn-num").innerHTML = v == null ? "--" : `${FMT.n(v, 2)} <small>点</small>`;
+  const chip = $("vxn-chip");
+  chip.textContent = band ? band.label : "--";
+  chip.className = "chip " + (band ? band.cls : "");
+  $("vxn-text").textContent = d.summary?.vxnText || "";
+  renderHistoryChart("chart-vxn", d.history?.vxn, { name: "VXN", color: "#fb923c" });
+}
+
 function renderPe(d) {
   const p = d.pe || {};
   $("pe-num").innerHTML = p.ttmPe == null ? "--" : `${FMT.n(p.ttmPe, 2)} <small>倍</small>`;
@@ -261,10 +272,11 @@ function renderPe(d) {
   $("pe-more").textContent = more.length ? more.join(" · ") : "";
   // 多口径对照（辅助来源，缺失时自动隐藏）
   const alt = [
-    p.spyPe != null ? `对照 · SPY PE(TTM) ${FMT.n(p.spyPe, 2)}（stockanalysis.com）` : null,
-    p.cape != null ? `席勒PE ${FMT.n(p.cape, 2)}（multpl）` : null,
+    p.spyPe != null ? `对照 · SPY PE(TTM) ${FMT.n(p.spyPe, 2)}` : null,
+    p.qqqPe != null ? `QQQ PE(TTM) ${FMT.n(p.qqqPe, 2)}（纳指100）` : null,
+    p.cape != null ? `席勒PE ${FMT.n(p.cape, 2)}` : null,
   ].filter(Boolean);
-  $("pe-alt").textContent = alt.length ? alt.join(" · ") : "";
+  $("pe-alt").textContent = alt.length ? `对照口径 · ${alt.join(" · ")}（stockanalysis / multpl）` : "";
   $("pe-text").textContent = d.summary?.valuationText || "";
   renderHistoryChart("chart-pe", d.history?.pe, {
     name: "TTM PE",
@@ -337,6 +349,7 @@ async function main() {
   renderNdx(data);
   renderFng(data);
   renderVix(data);
+  renderVxn(data);
   renderPe(data);
   renderSignal(data);
   renderAdvice(data);

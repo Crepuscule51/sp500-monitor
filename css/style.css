@@ -76,6 +76,7 @@ header .sub { color: var(--muted); font-size: 13px; margin-top: 6px; }
 }
 .card.wide { grid-column: span 2; }
 .card.full { grid-column: 1 / -1; }
+.subgrid { grid-template-columns: repeat(2, 1fr); }
 .card h2 {
   font-size: 15px; font-weight: 600; color: var(--muted);
   display: flex; align-items: center; justify-content: space-between;

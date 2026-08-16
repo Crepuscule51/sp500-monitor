@@ -31,6 +31,11 @@ const spx = {
   history: input.sp500.map((r) => ({ date: r.date, close: r.close })),
 };
 const vix = { value: 14.25, history: [...input.vix.map((r) => ({ date: r.date, value: r.value })), { date: "2026-08-14", value: 14.25 }] };
+// VXN：实况历史（Yahoo ^VXN，2026-08-14 收 20.72）
+const vxn = {
+  value: 20.72,
+  history: [...(input.vxn || []).map((r) => ({ date: r.date, value: r.value })), { date: "2026-08-14", value: 20.72 }],
+};
 // 纳指100：取实况历史最后一根日线作为当日快照（2026-08-14，Yahoo ^NDX 实测数据）
 const ndxBars = input.ndx || [];
 const ndxLast = ndxBars[ndxBars.length - 1];
@@ -50,7 +55,7 @@ const ndx = {
 const fng = { value: 65, rating: "Greed", history: [] };
 // 2026-08-16 实测 multpl.com（as-reported TTM PE，近10年月度分位为主口径）：
 // 当前 PE 30.00 → 近10年 91.67% / 近20年 90.83% / 全历史(1871至今, 1868个月) 97.27%
-// 对照口径（同日实测）：SPY PE(TTM) 28.00（stockanalysis.com）、席勒PE(CAPE) 42.56（multpl）
+// 对照口径（同日实测）：SPY PE(TTM) 28.00、QQQ PE(TTM) 33.62（stockanalysis.com）、席勒PE(CAPE) 42.56（multpl）
 const pe = {
   ttmPe: 30.0,
   percentile: 91.67,
@@ -58,6 +63,7 @@ const pe = {
   percentileAll: 97.27,
   percentileWindow: "10y",
   spyPe: 28.0,
+  qqqPe: 33.62,
   cape: 42.56,
 };
 
@@ -74,19 +80,21 @@ const daily = {
   },
   fng: { value: fng.value, rating: fng.rating },
   vix: { value: vix.value },
-  pe: { ttmPe: pe.ttmPe, percentile: pe.percentile, percentile20y: pe.percentile20y, percentileAll: pe.percentileAll, percentileWindow: pe.percentileWindow, spyPe: pe.spyPe, cape: pe.cape },
+  vxn: { value: vxn.value },
+  pe: { ttmPe: pe.ttmPe, percentile: pe.percentile, percentile20y: pe.percentile20y, percentileAll: pe.percentileAll, percentileWindow: pe.percentileWindow, spyPe: pe.spyPe, qqqPe: pe.qqqPe, cape: pe.cape },
   history: {
     spx: spx.history,
     ndx: ndx.history,
     vix: vix.history,
+    vxn: vxn.history,
     fng: [],
     pe: [],
   },
-  summary: buildSummary({ spx, ndx, fng, vix, pe }),
+  summary: buildSummary({ spx, ndx, fng, vix, vxn, pe }),
   sources: [
-    { label: "种子快照 2026-08-14（用户样例 + FRED SP500/VIXCLS + Yahoo NDX 真实历史）", status: "seed", url: "" },
+    { label: "种子快照 2026-08-14（用户样例 + FRED SP500/VIXCLS + Yahoo NDX/VXN 真实历史）", status: "seed", url: "" },
   ],
-  stale: { spx: false, ndx: false, fng: false, vix: false, pe: false },
+  stale: { spx: false, ndx: false, fng: false, vix: false, vxn: false, pe: false },
 };
 
 await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });

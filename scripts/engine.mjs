@@ -33,6 +33,15 @@ function vixBand(value) {
   return { label: "极高波动", tone: -2, text: "VIX处于极端高位，市场恐慌升温明显，系统性风险需高度警惕。" };
 }
 
+// VXN（纳指100 波动率）区间：结构上比 VIX 高，阈值相应上调；仅作参考，不参与综合打分
+function vxnBand(value) {
+  if (value == null) return null;
+  if (value < 22) return { label: "低波动", text: "VXN处于低波动区间，纳指100短期波动预期偏低，科技股情绪平稳。" };
+  if (value <= 35) return { label: "中性波动", text: "VXN处于中性波动区间，纳指100波动预期处于正常水平。" };
+  if (value <= 45) return { label: "高波动", text: "VXN处于高波动区间，纳指100恐慌情绪升温，科技股波动风险加大。" };
+  return { label: "极高波动", text: "VXN处于极端高位，纳指100波动风险显著，需高度警惕科技股回调。" };
+}
+
 function peBand(pct) {
   if (pct == null) return null;
   if (pct < 30) return { label: "较低", tone: 1 };
@@ -180,6 +189,7 @@ export function buildSummary(d) {
 
   const fngText = fngB ? FNG_BAND_TEXT[fngB.label] : null;
   const vixText = vixB ? vixB.text : null;
+  const vxnText = d.vxn && d.vxn.value != null ? (vxnBand(d.vxn.value) || {}).text : null;
 
   return {
     marketLine: marketLine(spx),
@@ -189,6 +199,7 @@ export function buildSummary(d) {
     dimensions,
     fngText,
     vixText,
+    vxnText,
     valuationText,
     conclusion,
     advice: ADVICE[signal.color],

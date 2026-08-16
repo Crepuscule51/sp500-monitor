@@ -15,12 +15,13 @@
 | 标普500 今日概览 | 收盘/涨跌额/涨跌幅/开/高/低/成交量 + 1年走势 | Yahoo Finance `^GSPC` |
 | 纳指100 今日概览 | 收盘/涨跌额/涨跌幅/开/高/低/成交量 + 1年走势 | Yahoo Finance `^NDX` |
 | 恐惧与贪婪 | CNN 指数（0–100 五区间）+ 120 天历史 | CNN dataviz 官方端点 |
-| VIX | 恐慌指数 + 低/中/高波动区间 + 1年历史 | Yahoo `^VIX`，失败回退 CBOE 官方 CSV |
-| 估值 | TTM PE（multpl 按已报告盈利口径）+ 近10年月度分位（另附 20 年/全历史分位） | multpl.com |
+| VIX | 标普500 恐慌指数 + 低/中/高波动区间 + 1年历史 | Yahoo `^VIX`，失败回退 CBOE 官方 CSV |
+| VXN | 纳指100 恐慌指数 + 低/中/高波动区间 + 1年历史 | Yahoo `^VXN`，失败回退 CBOE 官方 CSV |
+| 估值 | 标普500 TTM PE（multpl 按已报告盈利口径）+ 近10年月度分位（另附 20 年/全历史分位） | multpl.com |
 | 综合判断 | 情绪/波动/估值三维打分 → 红黄绿灯 | 本地规则引擎 |
 | 操作建议 | 按灯色生成 3 条中文建议 | 本地规则模板 |
 
-> 说明：CNN 恐惧贪婪、VIX、TTM PE 均为**标普500口径**的市场级指标，对两个指数统一展示。
+> 说明：CNN 恐惧贪婪、VIX、标普500 TTM PE 均为**标普500口径**的市场级指标；VXN 为纳指100 口径；估值卡同时展示 SPY / QQQ / 席勒 PE 多口径对照。
 
 ## 快速开始
 
@@ -71,6 +72,8 @@ python -m http.server 8000     # 或任意静态服务器
 
 **VIX**：< 15 低波动 / 15–25 中性波动 / > 25 高波动（> 35 视为极高波动）
 
+**VXN**（纳指100 口径，结构上高于 VIX）：< 22 低波动 / 22–35 中性波动 / > 35 高波动（> 45 视为极高波动）
+
 **估值分位**：主口径为**近10年月度分位**（multpl 月度 PE 序列 1871 年至今，取最近 120 个月，含当前月），同时记录近20年与全历史分位供参考：< 30% 较低 / 30–60% 中等 / 60–75% 中等偏高 / > 75% 偏高
 
 **综合判断**：情绪端（F&G 区间 ±1 分）＋ 波动端（VIX 区间 ±0.5~2 分）＋ 估值端（分位区间 ±1~2 分）求和：
@@ -97,16 +100,18 @@ python -m http.server 8000     # 或任意静态服务器
 
 **PE 数据口径是什么？**
 - 数值（主）：multpl.com 的 S&P 500 TTM PE（按已报告 GAAP 盈利计算），与各券商/网站的 operating PE 或 forward PE 口径会有 1~3 倍差异，属正常现象。
-- 数值（对照）：卡片上同时展示 **SPY PE(TTM)**（stockanalysis.com）与**席勒 PE / CAPE**（multpl，10 年通胀调整盈利）两个对照口径，便于交叉参考。
+- 数值（对照）：卡片上同时展示 **SPY PE(TTM)**、**QQQ PE(TTM)（纳指100）**（stockanalysis.com）与**席勒 PE / CAPE**（multpl，10 年通胀调整盈利）等对照口径，便于交叉参考。
 - 分位：近10年月度分位为主口径（页面卡片中会同时展示 20 年与全历史分位做参考）。
 
 ## 数据源与免责声明
 
 - S&P 500 日线：[Yahoo Finance](https://finance.yahoo.com/quote/%5EGSPC)
+- NASDAQ 100 日线：[Yahoo Finance](https://finance.yahoo.com/quote/%5ENDX)
 - CNN 恐惧与贪婪指数：[CNN Markets](https://www.cnn.com/markets/fear-and-greed)
 - VIX：[CBOE](https://www.cboe.com/tradable_products/vix/) / Yahoo Finance
+- VXN：[CBOE](https://www.cboe.com/tradable_products/vix/vix-historical/) / Yahoo Finance
 - TTM PE 与历史分位：[multpl.com](https://www.multpl.com/s-p-500-pe-ratio)
-- SPY PE 对照：[stockanalysis.com](https://stockanalysis.com/etf/spy/)
+- SPY / QQQ PE 对照：[stockanalysis.com](https://stockanalysis.com/etf/spy/) / [stockanalysis.com/etf/qqq](https://stockanalysis.com/etf/qqq/)
 - 席勒 PE 对照：[multpl.com/shiller-pe](https://www.multpl.com/shiller-pe)
 
 本项目仅供学习与信息展示，数据可能存在延迟或误差，自动生成的解读不构成任何投资建议。
