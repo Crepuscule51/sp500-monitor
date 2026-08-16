@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>美股监测图 · 标普500 & 纳指100</title>
 <meta name="description" content="每日自动更新的美股监测图：标普500 与纳指100 收盘概览、CNN 恐惧与贪婪指数、VIX 恐慌指数、TTM PE 估值与历史分位，附规则化中文解读。" />
-<link rel="stylesheet" href="css/style.css?v=20260817" />
+<link rel="stylesheet" href="css/style.css?v=20260818" />
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
 </head>
 <body>
@@ -86,7 +86,7 @@
       <div id="chart-vxn" class="chart sm" style="margin-top:8px"></div>
     </section>
 
-    <!-- 估值 -->
+    <!-- 估值（标普500） -->
     <section class="card full">
       <h2>估值（TTM PE） <span class="tag">标普500口径</span></h2>
       <div class="big-num" id="pe-num">--</div>
@@ -98,6 +98,14 @@
       <div class="pe-more" id="pe-alt"></div>
       <div class="pe-text" id="pe-text"></div>
       <div id="chart-pe" class="chart sm" style="margin-top:8px"></div>
+    </section>
+
+    <!-- 估值（纳指100） -->
+    <section class="card full">
+      <h2>估值（纳指100） <span class="tag">QQQ PE(TTM) 口径</span></h2>
+      <div class="big-num" id="ndx-pe-num">--</div>
+      <div class="pe-more">QQQ 跟踪纳指100，其 TTM PE 是纳指100 估值的常用代理（数据源 stockanalysis.com）；历史分位需随每日快照长期积累后显示。</div>
+      <div id="chart-qqq-pe" class="chart sm" style="margin-top:8px"></div>
     </section>
 
     <!-- 综合市场判断 -->
@@ -125,6 +133,6 @@
   </footer>
 
 </div>
-<script src="js/app.js?v=20260817"></script>
+<script src="js/app.js?v=20260818"></script>
 </body>
 </html>

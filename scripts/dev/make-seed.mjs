@@ -89,6 +89,7 @@ const daily = {
     vxn: vxn.history,
     fng: [],
     pe: [],
+    qqqPe: [{ date: "2026-08-14", value: pe.qqqPe }],
   },
   summary: buildSummary({ spx, ndx, fng, vix, vxn, pe }),
   sources: [

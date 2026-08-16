@@ -315,6 +315,7 @@ async function main() {
       vxn: mergeHistory(hist.vxn, vxn?.history, 300),
       fng: mergeHistory(hist.fng, fng?.history, 365),
       pe: mergeHistory(hist.pe, pe?.ttmPe != null ? [{ date: asOf, value: pe.ttmPe, percentile: pe.percentile }] : null, 730),
+      qqqPe: mergeHistory(hist.qqqPe, qqqPe != null ? [{ date: asOf, value: qqqPe }] : null, 730),
     },
     summary: buildSummary({ spx, ndx, fng, vix, vxn, pe }),
     sources: [spxR.entry, ndxR.entry, fngR.entry, vixR.entry, vxnR.entry, peR.entry, spyPeR.entry, qqqPeR.entry, capeR.entry],

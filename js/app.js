@@ -273,7 +273,6 @@ function renderPe(d) {
   // 多口径对照（辅助来源，缺失时自动隐藏）
   const alt = [
     p.spyPe != null ? `对照 · SPY PE(TTM) ${FMT.n(p.spyPe, 2)}` : null,
-    p.qqqPe != null ? `QQQ PE(TTM) ${FMT.n(p.qqqPe, 2)}（纳指100）` : null,
     p.cape != null ? `席勒PE ${FMT.n(p.cape, 2)}` : null,
   ].filter(Boolean);
   $("pe-alt").textContent = alt.length ? `对照口径 · ${alt.join(" · ")}（stockanalysis / multpl）` : "";
@@ -282,6 +281,16 @@ function renderPe(d) {
     name: "TTM PE",
     color: "#38bdf8",
     markLines: [{ yAxis: d.history?.pe?.length ? d.history.pe[d.history.pe.length - 1].value : undefined, label: { formatter: "最新" } }].filter((m) => m.yAxis != null),
+  });
+}
+
+function renderNdxPe(d) {
+  const q = d.pe?.qqqPe;
+  $("ndx-pe-num").innerHTML = q == null ? "--" : `${FMT.n(q, 2)} <small>倍</small>`;
+  renderHistoryChart("chart-qqq-pe", d.history?.qqqPe, {
+    name: "QQQ PE(TTM)",
+    color: "#22d3ee",
+    markLines: [{ yAxis: q, label: { formatter: "最新" } }].filter((m) => m.yAxis != null),
   });
 }
 
@@ -345,7 +354,7 @@ async function main() {
 
   $("main").style.display = "grid";
   // 每个区块独立渲染：单点失败只影响该卡片，不影响其他（容错）
-  const renderers = [renderHeader, renderOverview, renderNdx, renderFng, renderVix, renderVxn, renderPe, renderSignal, renderAdvice, renderFooter];
+  const renderers = [renderHeader, renderOverview, renderNdx, renderFng, renderVix, renderVxn, renderPe, renderNdxPe, renderSignal, renderAdvice, renderFooter];
   for (const fn of renderers) {
     try {
       fn(data);
