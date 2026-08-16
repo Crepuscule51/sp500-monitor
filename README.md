@@ -93,7 +93,8 @@ python -m http.server 8000     # 或任意静态服务器
 - 某天数据源全部失败：页面会保留上一日数据并显示"未更新"徽标，不影响浏览。
 
 **PE 数据口径是什么？**
-- 数值：multpl.com 的 S&P 500 TTM PE（按已报告 GAAP 盈利计算），与各券商/网站的 operating PE 或 forward PE 口径会有 1~3 倍差异，属正常现象。
+- 数值（主）：multpl.com 的 S&P 500 TTM PE（按已报告 GAAP 盈利计算），与各券商/网站的 operating PE 或 forward PE 口径会有 1~3 倍差异，属正常现象。
+- 数值（对照）：卡片上同时展示 **SPY PE(TTM)**（stockanalysis.com）与**席勒 PE / CAPE**（multpl，10 年通胀调整盈利）两个对照口径，便于交叉参考。
 - 分位：近10年月度分位为主口径（页面卡片中会同时展示 20 年与全历史分位做参考）。
 
 ## 数据源与免责声明
@@ -102,6 +103,8 @@ python -m http.server 8000     # 或任意静态服务器
 - CNN 恐惧与贪婪指数：[CNN Markets](https://www.cnn.com/markets/fear-and-greed)
 - VIX：[CBOE](https://www.cboe.com/tradable_products/vix/) / Yahoo Finance
 - TTM PE 与历史分位：[multpl.com](https://www.multpl.com/s-p-500-pe-ratio)
+- SPY PE 对照：[stockanalysis.com](https://stockanalysis.com/etf/spy/)
+- 席勒 PE 对照：[multpl.com/shiller-pe](https://www.multpl.com/shiller-pe)
 
 本项目仅供学习与信息展示，数据可能存在延迟或误差，自动生成的解读不构成任何投资建议。
 

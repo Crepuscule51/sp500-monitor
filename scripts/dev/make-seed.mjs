@@ -34,7 +34,16 @@ const vix = { value: 14.25, history: [...input.vix.map((r) => ({ date: r.date, v
 const fng = { value: 65, rating: "Greed", history: [] };
 // 2026-08-16 实测 multpl.com（as-reported TTM PE，近10年月度分位为主口径）：
 // 当前 PE 30.00 → 近10年 91.67% / 近20年 90.83% / 全历史(1871至今, 1868个月) 97.27%
-const pe = { ttmPe: 30.0, percentile: 91.67, percentile20y: 90.83, percentileAll: 97.27, percentileWindow: "10y" };
+// 对照口径（同日实测）：SPY PE(TTM) 28.00（stockanalysis.com）、席勒PE(CAPE) 42.56（multpl）
+const pe = {
+  ttmPe: 30.0,
+  percentile: 91.67,
+  percentile20y: 90.83,
+  percentileAll: 97.27,
+  percentileWindow: "10y",
+  spyPe: 28.0,
+  cape: 42.56,
+};
 
 const daily = {
   updatedAt: new Date().toISOString(),
@@ -45,7 +54,7 @@ const daily = {
   },
   fng: { value: fng.value, rating: fng.rating },
   vix: { value: vix.value },
-  pe: { ttmPe: pe.ttmPe, percentile: pe.percentile, percentile20y: pe.percentile20y, percentileAll: pe.percentileAll, percentileWindow: pe.percentileWindow },
+  pe: { ttmPe: pe.ttmPe, percentile: pe.percentile, percentile20y: pe.percentile20y, percentileAll: pe.percentileAll, percentileWindow: pe.percentileWindow, spyPe: pe.spyPe, cape: pe.cape },
   history: {
     spx: spx.history,
     vix: vix.history,

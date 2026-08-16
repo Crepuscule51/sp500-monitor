@@ -232,6 +232,12 @@ function renderPe(d) {
     p.percentileAll != null ? `全历史分位 ${FMT.n(p.percentileAll, 1)}%` : null,
   ].filter(Boolean);
   $("pe-more").textContent = more.length ? more.join(" · ") : "";
+  // 多口径对照（辅助来源，缺失时自动隐藏）
+  const alt = [
+    p.spyPe != null ? `对照 · SPY PE(TTM) ${FMT.n(p.spyPe, 2)}（stockanalysis.com）` : null,
+    p.cape != null ? `席勒PE ${FMT.n(p.cape, 2)}（multpl）` : null,
+  ].filter(Boolean);
+  $("pe-alt").textContent = alt.length ? alt.join(" · ") : "";
   $("pe-text").textContent = d.summary?.valuationText || "";
   renderHistoryChart("chart-pe", d.history?.pe, {
     name: "TTM PE",

@@ -151,6 +151,24 @@ async function fetchPe() {
   return { ttmPe, percentile, percentile20y, percentileAll, percentileWindow: "10y" };
 }
 
+// 辅助估值来源（对照用，可选）：stockanalysis.com 的 SPY PE（TTM）
+async function fetchSpyPe() {
+  const html = await getText("https://stockanalysis.com/etf/spy/");
+  const m = html.match(/PE Ratio<\/td><td[^>]*>\s*([0-9.]+)\s*<\/td>/);
+  const value = m ? parseFloat(m[1]) : null;
+  if (value == null || !Number.isFinite(value)) throw new Error("stockanalysis SPY PE 解析失败");
+  return value;
+}
+
+// 辅助估值来源（对照用，可选）：multpl 席勒 PE（CAPE，10 年通胀调整盈利）
+async function fetchCape() {
+  const html = await getText("https://www.multpl.com/shiller-pe");
+  const m = html.match(/Current Shiller PE Ratio is ([0-9.]+)/);
+  const value = m ? parseFloat(m[1]) : null;
+  if (value == null || !Number.isFinite(value)) throw new Error("multpl 席勒 PE 解析失败");
+  return value;
+}
+
 // ---------------------------------------------------------------- 合并与写入
 
 function mergeHistory(existing, incoming, cap) {
@@ -183,13 +201,17 @@ async function main() {
     fng: "https://www.cnn.com/markets/fear-and-greed",
     vix: "https://finance.yahoo.com/quote/%5EVIX",
     pe: "https://www.multpl.com/s-p-500-pe-ratio",
+    spyPe: "https://stockanalysis.com/etf/spy/",
+    cape: "https://www.multpl.com/shiller-pe",
   };
 
-  const [spxR, fngR, vixR, peR] = await Promise.all([
+  const [spxR, fngR, vixR, peR, spyPeR, capeR] = await Promise.all([
     attempt(fetchSpx, "S&P 500 (Yahoo ^GSPC)", urls.spx),
     attempt(fetchFng, "CNN Fear & Greed (dataviz)", urls.fng),
     attempt(fetchVix, "VIX (Yahoo ^VIX / CBOE CSV)", urls.vix),
     attempt(fetchPe, "S&P 500 TTM PE (multpl)", urls.pe),
+    attempt(fetchSpyPe, "SPY PE 对照 (stockanalysis)", urls.spyPe),
+    attempt(fetchCape, "席勒 PE 对照 (multpl)", urls.cape),
   ]);
 
   const spx = spxR.ok ? spxR.value : prev.spx;
@@ -205,6 +227,9 @@ async function main() {
         percentileWindow: peR.value.percentileWindow || prev.pe?.percentileWindow || "10y",
       }
     : prev.pe;
+  // 辅助对照来源（可选，失败仅隐藏对照行）
+  const spyPe = spyPeR.ok ? spyPeR.value : prev.pe?.spyPe ?? null;
+  const cape = capeR.ok ? capeR.value : prev.pe?.cape ?? null;
 
   const asOf = spx?.asOf || prev.asOf || new Date().toISOString().slice(0, 10);
   const hist = prev.history || {};
@@ -220,7 +245,13 @@ async function main() {
       : prev.spx,
     fng: fng ? { value: fng.value, rating: fng.rating ?? null } : prev.fng,
     vix: vix ? { value: vix.value } : prev.vix,
-    pe: pe ? { ttmPe: pe.ttmPe, percentile: pe.percentile, percentile20y: pe.percentile20y, percentileAll: pe.percentileAll, percentileWindow: pe.percentileWindow } : prev.pe,
+    pe: pe
+      ? {
+          ttmPe: pe.ttmPe, percentile: pe.percentile, percentile20y: pe.percentile20y,
+          percentileAll: pe.percentileAll, percentileWindow: pe.percentileWindow,
+          spyPe, cape,
+        }
+      : prev.pe,
     history: {
       spx: mergeHistory(hist.spx, spx?.history, 300),
       vix: mergeHistory(hist.vix, vix?.history, 300),
@@ -228,7 +259,7 @@ async function main() {
       pe: mergeHistory(hist.pe, pe?.ttmPe != null ? [{ date: asOf, value: pe.ttmPe, percentile: pe.percentile }] : null, 730),
     },
     summary: buildSummary({ spx, fng, vix, pe }),
-    sources: [spxR.entry, fngR.entry, vixR.entry, peR.entry],
+    sources: [spxR.entry, fngR.entry, vixR.entry, peR.entry, spyPeR.entry, capeR.entry],
     stale: { spx: !spxR.ok, fng: !fngR.ok, vix: !vixR.ok, pe: !peR.ok },
   };
 
@@ -241,7 +272,7 @@ async function main() {
   console.log(`S&P 500     : ${daily.spx?.close} (${daily.spx?.changePct}%)  量 ${daily.spx?.volume}`);
   console.log(`F&G         : ${daily.fng?.value}  ${daily.fng?.rating ?? ""}`);
   console.log(`VIX         : ${daily.vix?.value}`);
-  console.log(`TTM PE      : ${daily.pe?.ttmPe}  (分位 ${daily.pe?.percentile}%)`);
+  console.log(`TTM PE      : ${daily.pe?.ttmPe}  (近10年分位 ${daily.pe?.percentile}%)  对照: SPY ${daily.pe?.spyPe} / 席勒 ${daily.pe?.cape}`);
   console.log(`信号         : ${s.signal?.label}  (score ${s.score})`);
   console.log(`行情描述     : ${s.marketLine}`);
   console.log(`结论         : ${s.conclusion}`);
