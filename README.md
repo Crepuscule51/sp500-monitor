@@ -89,6 +89,22 @@ python -m http.server 8000     # 或任意静态服务器
 - 失败时沿用上一日快照中的旧值，并在 `sources` 中记录失败原因（可在 `data/daily.json` 查看）
 - 历史序列按日期去重合并，SPX/VIX 保留 300 个点，F&G 保留 365 个点，PE 保留 730 个点
 
+## 手机推送（微信 · Server酱，可选）
+
+每天美股收盘后，把当日日报摘要推送到你的微信（数据 + 综合判断 + 操作建议），周末不打扰。
+
+**配置步骤（3 分钟）：**
+
+1. 打开 [sct.ftqq.com](https://sct.ftqq.com)，**微信扫码登录**，页面上会显示你的 **SendKey**（形如 `SCT123456...`），复制它
+2. GitHub 仓库 → `Settings → Secrets and variables → Actions → New repository secret`：
+   - Name 填：`SERVERCHAN_KEY`
+   - Secret 填：刚复制的 SendKey
+3. 测试：仓库 `Actions` → `Update daily snapshot` → `Run workflow` → **勾选 "发送测试微信推送"** → 手机微信应收到一条日报
+
+**之后完全自动**：每个美股交易日（周一至周五）收盘后约北京时间 06:30 推送一次；周六日无新数据不推。
+
+> 不配置也能正常使用：推送步骤会自动跳过，不影响页面和数据。推送内容由 `scripts/notify.mjs` 生成，想改格式直接编辑该文件。
+
 ## 常见问题
 
 **刷新浏览器就能看到最新数据吗？**

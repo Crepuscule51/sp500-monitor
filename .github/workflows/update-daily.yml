@@ -1,7 +1,12 @@
 name: Update daily snapshot
 
 on:
-  workflow_dispatch:        # 支持手动触发（仓库 Actions 页面点击 Run workflow）
+  workflow_dispatch:
+    inputs:
+      force_notify:
+        description: "发送测试微信推送（勾选后本次运行强制推送）"
+        type: boolean
+        default: false
   schedule:
     # GitHub Actions 的 cron 使用 UTC。22:30 UTC = 北京时间 06:30（次日）。
     # 美股 16:00 ET 收盘 ≈ 20:00~21:00 UTC，22:30 UTC 可确保收盘数据完整（夏令时/冬令时均覆盖）。
@@ -21,6 +26,9 @@ jobs:
           node-version: "22"
 
       - name: Fetch market data snapshot
+        env:
+          SERVERCHAN_KEY: ${{ secrets.SERVERCHAN_KEY }}
+          NOTIFY_FORCE: ${{ github.event.inputs.force_notify || '' }}
         run: node scripts/fetch-daily.mjs
 
       - name: Commit and push snapshot

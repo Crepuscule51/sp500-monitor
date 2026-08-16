@@ -340,6 +340,26 @@ async function main() {
   for (const e of daily.sources) console.log(`  [${e.status}] ${e.label}`);
 
   const allFailed = !spxR.ok && !ndxR.ok && !fngR.ok && !vixR.ok && !vxnR.ok && !peR.ok && !prev.asOf;
+
+  // ---- 微信推送（Server酱）：仅当出现新交易日数据，或手动强制推送 ----
+  const notifyKey = process.env.SERVERCHAN_KEY || "";
+  const forceNotify = process.env.NOTIFY_FORCE === "1" || process.env.NOTIFY_FORCE === "true";
+  if (notifyKey && (asOf !== prev.asOf || forceNotify)) {
+    try {
+      const { buildDigest, sendServerChan } = await import("./notify.mjs");
+      const { title, desp } = buildDigest(daily);
+      await sendServerChan(notifyKey, title, desp);
+      console.log("微信推送成功:", title);
+    } catch (e) {
+      // 推送失败不影响数据提交
+      console.error("微信推送失败:", e.message);
+    }
+  } else if (!notifyKey) {
+    console.log("未配置 SERVERCHAN_KEY，跳过微信推送（README 有配置说明）");
+  } else {
+    console.log("无新交易日数据（asOf 未变化），跳过微信推送");
+  }
+
   process.exit(allFailed ? 1 : 0);
 }
 
