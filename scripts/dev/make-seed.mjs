@@ -45,7 +45,7 @@ const daily = {
   },
   fng: { value: fng.value, rating: fng.rating },
   vix: { value: vix.value },
-  pe: { ttmPe: pe.ttmPe, percentile: pe.percentile },
+  pe: { ttmPe: pe.ttmPe, percentile: pe.percentile, percentile20y: pe.percentile20y, percentileAll: pe.percentileAll, percentileWindow: pe.percentileWindow },
   history: {
     spx: spx.history,
     vix: vix.history,

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-16T12:15:38.702Z",
+  "updatedAt": "2026-08-16T12:16:23.079Z",
   "asOf": "2026-08-14",
   "spx": {
     "open": 7806.6,
@@ -20,7 +20,10 @@
   },
   "pe": {
     "ttmPe": 30,
-    "percentile": 91.67
+    "percentile": 91.67,
+    "percentile20y": 90.83,
+    "percentileAll": 97.27,
+    "percentileWindow": "10y"
   },
   "history": {
     "spx": [
