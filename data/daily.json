@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-24T00:55:57.387Z",
+  "updatedAt": "2026-10-25T00:26:59.748Z",
   "asOf": "2026-10-23",
   "spx": {
     "open": 7637.18,
@@ -9,7 +9,7 @@
     "prevClose": 7663.43,
     "change": -39.75,
     "changePct": -0.52,
-    "volume": 2749563000
+    "volume": 5062330000
   },
   "ndx": {
     "open": 28847.82,
@@ -19,7 +19,7 @@
     "prevClose": 28958.69,
     "change": -1.16,
     "changePct": 0,
-    "volume": 1043947000
+    "volume": 6554790000
   },
   "fng": {
     "value": 21,
@@ -37,8 +37,8 @@
     "percentile20y": 74.58,
     "percentileAll": 93.05,
     "percentileWindow": "10y",
-    "spyPe": 24.52,
-    "qqqPe": 28.53,
+    "spyPe": 24.43,
+    "qqqPe": 28.45,
     "cape": 40.36
   },
   "history": {
@@ -2441,7 +2441,7 @@
         "high": 7660.15,
         "low": 7612.07,
         "close": 7623.68,
-        "volume": 2749563000
+        "volume": 5062330000
       }
     ],
     "ndx": [
@@ -4843,7 +4843,7 @@
         "high": 29161.03,
         "low": 28825.72,
         "close": 28957.53,
-        "volume": 1043947000
+        "volume": 6554790000
       }
     ],
     "vix": [
@@ -7702,13 +7702,13 @@
       },
       {
         "date": "2026-10-23",
-        "value": 28.53
+        "value": 28.45
       }
     ]
   },
   "summary": {
-    "marketLine": "明显下跌，整体弱势运行，市场情绪承压，成交明显缩量",
-    "ndxLine": "基本平盘，多空力量均衡，市场方向不明，成交明显缩量",
+    "marketLine": "明显下跌，整体弱势运行，市场情绪承压",
+    "ndxLine": "基本平盘，多空力量均衡，市场方向不明",
     "signal": {
       "color": "red",
       "label": "红灯：谨慎防守"
