@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-08T01:41:41.596Z",
+  "updatedAt": "2026-11-09T01:50:30.374Z",
   "asOf": "2026-11-06",
   "spx": {
     "open": 7377.65,
@@ -37,7 +37,7 @@
     "percentile20y": 70.83,
     "percentileAll": 92.15,
     "percentileWindow": "10y",
-    "spyPe": 22.95,
+    "spyPe": 23,
     "qqqPe": 25.85,
     "cape": 38.91
   },
